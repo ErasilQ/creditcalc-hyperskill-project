@@ -1,0 +1,62 @@
+import argparse
+from math import ceil, log
+
+parser = argparse.ArgumentParser()
+parser.add_argument('-t', "--type")
+parser.add_argument('-pm', "--payment")
+parser.add_argument('-pc', "--principal")
+parser.add_argument('-pr', "--periods")
+parser.add_argument('-it', "--interest")
+args = parser.parse_args()
+t = args.type
+pm = args.payment
+pc = args.principal
+pr = args.periods
+it = args.interest
+args_list = [x for x in [pm, pc, pr, it] if x is not None]
+if (t != "annuity" and t != "diff") or (t == "diff" and pm is not None) or it is None or len(args_list) < 3:
+    print("Incorrect parameters")
+    exit()
+for x in args_list:
+    if float(x) <= 0:
+        print("Incorrect parameters")
+        exit()
+
+it = float(it)
+i = it / 12 / 100
+if t == "diff":
+    p = int(pc)
+    n = int(pr)
+    paid = 0
+    for m in range(1, n+1):
+        d = ceil(p/n + i*(p - p*(m-1)/n))
+        paid += d
+        print(f"Month {m}: payment is {d}")
+    print(f"\nOverpayment = {paid - p}")
+
+else:  # annuity
+    if pm is None:
+        p = int(pc)
+        n = int(pr)
+        a = ceil(p * (i * (1 + i)**n) / ((1 + i)**n - 1))
+        print(f"Your annuity payment = {a}!")
+        print(f"Overpayment = {a*n - p}")
+    if pc is None:
+        n = int(pr)
+        a = int(pm)
+        p = round(a / ((i * (1+i)**n) / ((1+i)**n - 1)))
+        print(f"Your loan principal = {p}!")
+        print(f"Overpayment = {a*n - p}")
+    if pr is None:
+        p = int(pc)
+        a = int(pm)
+        n = ceil(log(abs(a/(a - i*p)), 1+i))
+
+        year = n // 12
+        month = n % 12
+        print(f"It will take"
+              f"{' '+str(year)+' year' if year != 0 or month == 0 else ''}{'s' if year > 1 else ''}"
+              f"{' and' if year != 0 and month != 0 else ''}"
+              f"{' '+str(month)+' month' if month != 0 else ''}{'s' if month > 1 else ''}"
+              f" to repay this loan!")
+        print(f"Overpayment = {a*n - p}")
